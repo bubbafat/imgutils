@@ -4,8 +4,25 @@ import math
 import argparse
 import subprocess
 from PIL import Image
+from PIL.ExifTags import TAGS
+from PIL import ExifTags
+
 
 magick='magick'
+
+def get_exif_line(image):
+    exif = image.getexif()
+    # {TAGS.get(tag): value for tag, value in info.items()}
+    data = {}
+
+    for key, value in exif.get_ifd(ExifTags.Base.ExifOffset).items():
+        tag = ExifTags.TAGS.get(key, key)
+        data[tag] = value
+
+    if any(data):
+        return f"{data.get('LensModel', '')} 1/{str(1/data.get('ExposureTime', 1))} f/{data.get('FNumber', '')} - ISO {data.get('ISOSpeedRatings', '')}"
+
+    return None
 
 def add_frame(input, output, line1, line2, line3):
     image = Image.open(input)
@@ -28,6 +45,9 @@ def add_frame(input, output, line1, line2, line3):
     line_offset = int(frame_width - fontsize - line_spacing)
 
     for line in lines:
+        if line == "exif":
+            line = get_exif_line(image)
+
         if line:
             command += " +delete \\\n"
             line = line.replace('\'', '\'\'')
