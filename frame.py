@@ -1,6 +1,11 @@
+import pathlib
+import os
 import math
 import argparse
+import subprocess
 from PIL import Image
+
+magick='magick'
 
 def add_frame(input, output, line1, line2):
     image = Image.open(input)
@@ -10,15 +15,14 @@ def add_frame(input, output, line1, line2):
     frame_width = int((math.sqrt(math.pow(l+w,2) + ((4*l*w)/phi)) - l - w) / 4)
     fontsize = int(frame_width / 6)
     line_spacing = fontsize / 3
-    fontname = "Helvetica"
+    fontname = "Verdana"
     line1_offset = int(frame_width - fontsize - line_spacing)
     line2_offset = int(line1_offset - fontsize - line_spacing)
 
     line1 = line1.replace('\'', '\'\'')
     line2 = line2.replace('\'', '\'\'')
 
-    command = f"""
-        magick \\
+    command = f"""{magick} \\
             {image.filename} \\
             -write mpr:orig \\
             +delete \\
@@ -37,7 +41,12 @@ parser.add_argument("line1", help="The top line caption")
 parser.add_argument("line2", help="The second line caption")
 args = parser.parse_args()
 
-print(add_frame(args.input, args.output, args.line1, args.line2))
+command = add_frame(args.input, args.output, args.line1, args.line2)
 
+pathlib.Path(args.output).unlink(missing_ok=True)
 
-    
+print(command)
+
+p = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
+(output, err) = p.communicate()  
+p_status = p.wait()
