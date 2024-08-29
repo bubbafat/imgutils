@@ -7,7 +7,7 @@ from PIL import Image
 
 magick='magick'
 
-def add_frame(input, output, line1, line2):
+def add_frame(input, output, line1, line2, line3):
     image = Image.open(input)
 
     phi = 1.618033
@@ -16,22 +16,25 @@ def add_frame(input, output, line1, line2):
     fontsize = int(frame_width / 6)
     line_spacing = fontsize / 3
     fontname = "Verdana"
-    line1_offset = int(frame_width - fontsize - line_spacing)
-    line2_offset = int(line1_offset - fontsize - line_spacing)
 
-    line1 = line1.replace('\'', '\'\'')
-    line2 = line2.replace('\'', '\'\'')
+    lines = [line1, line2, line3]
 
     command = f"""{magick} \\
             {image.filename} \\
             -write mpr:orig \\
             +delete \\
-            mpr:orig -bordercolor White -border {frame_width} +write mpr:border +delete \\
-            mpr:border -gravity Southwest -pointsize {fontsize} -font {fontname} -fill Black -draw \'text {frame_width},{line1_offset} \"{line1}\"\' +write mpr:line1 +delete \\
-            mpr:line1 -gravity Southwest -pointsize {fontsize} -font {fontname} -fill Black -draw \'text {frame_width},{line2_offset} \"{line2}\"\' \\
-            {output}            
-    """
+            mpr:orig -bordercolor White -border {frame_width} +write mpr:border"""
 
+    line_offset = int(frame_width - fontsize - line_spacing)
+
+    for line in lines:
+        if line:
+            command += " +delete \\\n"
+            line = line.replace('\'', '\'\'')
+            command += f"mpr:border -gravity Southwest -pointsize {fontsize} -font {fontname} -fill Black -draw \'text {frame_width},{line_offset} \"{line}\"\' +write mpr:border"
+            line_offset = int(line_offset - fontsize - line_spacing)
+
+    command += f" {output}"
     return command
 
 parser = argparse.ArgumentParser("frame")
@@ -39,9 +42,10 @@ parser.add_argument("input", help="The image to add a frame to")
 parser.add_argument("output", help="The image to create")
 parser.add_argument("line1", help="The top line caption")
 parser.add_argument("line2", help="The second line caption")
+parser.add_argument("line3", help="The third line")
 args = parser.parse_args()
 
-command = add_frame(args.input, args.output, args.line1, args.line2)
+command = add_frame(args.input, args.output, args.line1, args.line2, args.line3)
 
 pathlib.Path(args.output).unlink(missing_ok=True)
 subdir = os.path.split(args.output)[0]
