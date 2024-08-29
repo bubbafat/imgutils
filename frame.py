@@ -44,6 +44,10 @@ args = parser.parse_args()
 command = add_frame(args.input, args.output, args.line1, args.line2)
 
 pathlib.Path(args.output).unlink(missing_ok=True)
+subdir = os.path.split(args.output)[0]
+
+if subdir:
+    os.makedirs(subdir, exist_ok=True)
 
 print(command)
 
