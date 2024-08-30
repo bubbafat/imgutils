@@ -23,30 +23,40 @@ def get_frame_size(image, method):
     return int(method)
 
 
-def get_exif_line(image):
+def get_exif_data(image):
     exif = image.getexif()
-    # {TAGS.get(tag): value for tag, value in info.items()}
-    data = {}
+    data = {TAGS.get(tag): value for tag, value in exif.items()}
 
     for key, value in exif.get_ifd(ExifTags.Base.ExifOffset).items():
         tag = ExifTags.TAGS.get(key, key)
         data[tag] = value
 
+    if 'ExposureTime' in data.keys():
+        data['ExposureTime'] = str(1 / data['ExposureTime'])
+
+    return data
+
     if any(data):
-        print(data)
         return f"{data.get('LensModel', '')} 1/{str(1/data.get('ExposureTime', 1))} f/{data.get('FNumber', '')} - ISO {data.get('ISOSpeedRatings', '')}"
 
     return None
 
+def parse_exif_string(exif, text):
+    for key in exif.keys():
+        text = text.replace(f"{{{key}}}", str(exif[key]))
+    return text
+
+
 def add_frame(config):
     image = Image.open(config.input)
+    exif = get_exif_data(image)
 
     frame_width = get_frame_size(image, config.method)
 
-    # adapt font size by the number of lines but never more than 1/4 of the framing height
     fontsize = 0
     line_spacing = 0
 
+    # adapt font size by the number of lines but never more than 1/4 of the framing height
     if config.caption and len(config.caption) > 0:
         fontsize = min(int(frame_width / (len(config.caption)*2)), frame_width / 4)
         line_spacing = fontsize / 3
@@ -63,10 +73,8 @@ def add_frame(config):
 
     if config.caption:
         for line in config.caption:
-            if line == "exif":
-                line = get_exif_line(image)
-
             if line:
+                line = parse_exif_string(exif, line)
                 command += " +delete \\\n"
                 line = line.replace('\'', '\'\'')
                 command += f"mpr:border -gravity Southwest -pointsize {fontsize} -font {fontname} -fill {config.fontcolor} -draw \'text {frame_width},{line_offset} \"{line}\"\' +write mpr:border"

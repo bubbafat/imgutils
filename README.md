@@ -21,6 +21,8 @@ usage: frame [-h]
 |-color|The color of the border. Default: White|
 |-fontcolor|The color of the caption font. Default: Black|
 
+Captions can contain EXIF keys (surrounded by braces) which will be replaced with the EXIF value.  The keys are the [Base keys](https://pillow.readthedocs.io/en/stable/_modules/PIL/ExifTags.html#Base) from the Pillow library. See example 4 below.
+
 Example:
 
 ```sh
@@ -40,5 +42,11 @@ python frame.py -input doc/launch.jpg -output output/framed2.jpg -method 7% -cap
 python frame.py -input doc/launch.jpg -output output/framed3.jpg -font Helvetica -fontcolor Blue -color Yellow -method 7% -caption "This is line one" -caption "This is line two"
 ```
 ![alt text](doc/framed3.jpg "Example output")
+
+```sh
+python frame.py -input doc/launch.jpg -output output/framed4.jpg -caption "{Make} {Model} {LensModel} (1/{ExposureTime}, f/{FNumber}, ISO: {ISOSpeedRatings})" 
+```
+![alt text](doc/framed4.jpg "Example output")
+
 
 
