@@ -10,6 +10,19 @@ from PIL import ExifTags
 
 magick='magick'
 
+def get_frame_size(image, method):
+    if method == "golden":
+        phi = 1.618033
+        l,w = image.size
+        return int((math.sqrt(math.pow(l+w,2) + ((4*l*w)/phi)) - l - w) / 4)
+        
+    if method.endswith('%'):
+        pct = int(method[:-1])
+        return max(image.size) * (pct / 100)
+    
+    return int(method)
+
+
 def get_exif_line(image):
     exif = image.getexif()
     # {TAGS.get(tag): value for tag, value in info.items()}
@@ -24,48 +37,48 @@ def get_exif_line(image):
 
     return None
 
-def add_frame(input, output, line1, line2, line3):
-    image = Image.open(input)
+def add_frame(config):
+    image = Image.open(config.input)
 
-    phi = 1.618033
-    l,w = image.size
-    frame_width = int((math.sqrt(math.pow(l+w,2) + ((4*l*w)/phi)) - l - w) / 4)
-    fontsize = int(frame_width / 6)
+    frame_width = get_frame_size(image, config.method)
+
+    # adapt font size by the number of lines but never more than 1/4 of the framing height
+    fontsize = min(int(frame_width / (len(config.caption)*2)), frame_width / 4)
     line_spacing = fontsize / 3
-    fontname = "Verdana"
-
-    lines = [line1, line2, line3]
+    fontname = config.font
 
     command = f"""{magick} \\
             {image.filename} \\
             -write mpr:orig \\
             +delete \\
-            mpr:orig -bordercolor White -border {frame_width} +write mpr:border"""
+            mpr:orig -bordercolor {config.color} -border {frame_width} +write mpr:border"""
 
     line_offset = int(frame_width - fontsize - line_spacing)
 
-    for line in lines:
+    for line in config.caption:
         if line == "exif":
             line = get_exif_line(image)
 
         if line:
             command += " +delete \\\n"
             line = line.replace('\'', '\'\'')
-            command += f"mpr:border -gravity Southwest -pointsize {fontsize} -font {fontname} -fill Black -draw \'text {frame_width},{line_offset} \"{line}\"\' +write mpr:border"
+            command += f"mpr:border -gravity Southwest -pointsize {fontsize} -font {fontname} -fill {config.fontcolor} -draw \'text {frame_width},{line_offset} \"{line}\"\' +write mpr:border"
             line_offset = int(line_offset - fontsize - line_spacing)
 
-    command += f" {output}"
+    command += f" {config.output}"
     return command
 
 parser = argparse.ArgumentParser("frame")
-parser.add_argument("input", help="The image to add a frame to")
-parser.add_argument("output", help="The image to create")
-parser.add_argument("line1", help="The top line caption")
-parser.add_argument("line2", help="The second line caption")
-parser.add_argument("line3", help="The third line")
+parser.add_argument("-input", help="The image to add a frame to", required=True)
+parser.add_argument("-output", help="The image to create", required=True)
+parser.add_argument("-method", help="The framing method. (golden | N% | N)", default='golden')
+parser.add_argument("-caption", help="A caption line", action='append', required=False)
+parser.add_argument("-font", help="The name of the font to use (default: Arial))", required=False, default="Arial")
+parser.add_argument("-color", help="The color of the border (default: White)", required=False, default="White")
+parser.add_argument("-fontcolor", help="The color of the font (default: Black)", required=False, default="Black")
 args = parser.parse_args()
 
-command = add_frame(args.input, args.output, args.line1, args.line2, args.line3)
+command = add_frame(args)
 
 pathlib.Path(args.output).unlink(missing_ok=True)
 subdir = os.path.split(args.output)[0]
