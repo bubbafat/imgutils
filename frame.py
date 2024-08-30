@@ -33,6 +33,7 @@ def get_exif_line(image):
         data[tag] = value
 
     if any(data):
+        print(data)
         return f"{data.get('LensModel', '')} 1/{str(1/data.get('ExposureTime', 1))} f/{data.get('FNumber', '')} - ISO {data.get('ISOSpeedRatings', '')}"
 
     return None
@@ -53,7 +54,7 @@ def add_frame(config):
     fontname = config.font
 
     command = f"""{magick} \\
-            {image.filename} \\
+            \"{image.filename}\" \\
             -write mpr:orig \\
             +delete \\
             mpr:orig -bordercolor {config.color} -border {frame_width} +write mpr:border"""
@@ -71,7 +72,7 @@ def add_frame(config):
                 command += f"mpr:border -gravity Southwest -pointsize {fontsize} -font {fontname} -fill {config.fontcolor} -draw \'text {frame_width},{line_offset} \"{line}\"\' +write mpr:border"
                 line_offset = int(line_offset - fontsize - line_spacing)
 
-    command += f" {config.output}"
+    command += f" \"{config.output}\""
     return command
 
 parser = argparse.ArgumentParser("frame")
