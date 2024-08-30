@@ -22,16 +22,21 @@ usage: frame [-h]
 Example:
 
 ```sh
-frame -input file.jpg -output framed.jpg
+python frame.py -input doc/launch.jpg -output output/framed1.jpg
 ```
 
-This will add a white frame using the default golden ratio with no captions.
-
-```sh
-frame -input file.jpg -output framed.jpg -method 7% -caption "This is line one" -caption "This is line two"
-```
+![alt text](doc/framed1.jpg "Example output")
 
 ```sh
-frame -input file.jpg -output framed.jpg -font Helvetica -fontcolor Blue -color Yellow -method 7% -caption "This is line one" -caption "This is line two"
+python frame.py -input doc/launch.jpg -output output/framed2.jpg -method 7% -caption "This is line one" -caption "This is line two"
 ```
+
+![alt text](doc/framed2.jpg "Example output")
+
+
+```sh
+python frame.py -input doc/launch.jpg -output output/framed3.jpg -font Helvetica -fontcolor Blue -color Yellow -method 7% -caption "This is line one" -caption "This is line two"
+```
+![alt text](doc/framed3.jpg "Example output")
+
 

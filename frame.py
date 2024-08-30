@@ -43,8 +43,13 @@ def add_frame(config):
     frame_width = get_frame_size(image, config.method)
 
     # adapt font size by the number of lines but never more than 1/4 of the framing height
-    fontsize = min(int(frame_width / (len(config.caption)*2)), frame_width / 4)
-    line_spacing = fontsize / 3
+    fontsize = 0
+    line_spacing = 0
+
+    if config.caption and len(config.caption) > 0:
+        fontsize = min(int(frame_width / (len(config.caption)*2)), frame_width / 4)
+        line_spacing = fontsize / 3
+
     fontname = config.font
 
     command = f"""{magick} \\
@@ -55,15 +60,16 @@ def add_frame(config):
 
     line_offset = int(frame_width - fontsize - line_spacing)
 
-    for line in config.caption:
-        if line == "exif":
-            line = get_exif_line(image)
+    if config.caption:
+        for line in config.caption:
+            if line == "exif":
+                line = get_exif_line(image)
 
-        if line:
-            command += " +delete \\\n"
-            line = line.replace('\'', '\'\'')
-            command += f"mpr:border -gravity Southwest -pointsize {fontsize} -font {fontname} -fill {config.fontcolor} -draw \'text {frame_width},{line_offset} \"{line}\"\' +write mpr:border"
-            line_offset = int(line_offset - fontsize - line_spacing)
+            if line:
+                command += " +delete \\\n"
+                line = line.replace('\'', '\'\'')
+                command += f"mpr:border -gravity Southwest -pointsize {fontsize} -font {fontname} -fill {config.fontcolor} -draw \'text {frame_width},{line_offset} \"{line}\"\' +write mpr:border"
+                line_offset = int(line_offset - fontsize - line_spacing)
 
     command += f" {config.output}"
     return command
