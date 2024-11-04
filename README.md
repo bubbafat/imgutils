@@ -49,4 +49,9 @@ python frame.py -input doc/launch.jpg -output output/framed4.jpg -caption "{Make
 ![alt text](doc/framed4.jpg "Example output")
 
 
+```sh
+for file in /path/to/photos*.jpg; python frame.py -input $file -output $file:h/framed/$file:t -caption "{Make} {Model} {LensModel}" -caption "{FocalLength}mm 1/{ExposureTime}, f/{FNumber}, ISO: {ISOSpeedRatings}" -font Helvetica -method 8% 
+```
+
+The above command processes each of the files in an input directory and creates a child directory 'framed' which contains the output files.
 
