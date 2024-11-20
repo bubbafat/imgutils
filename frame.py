@@ -80,6 +80,9 @@ def add_frame(config):
                 command += f"mpr:border -gravity Southwest -pointsize {fontsize} -font {fontname} -fill {config.fontcolor} -draw \'text {frame_width},{line_offset} \"{line}\"\' +write mpr:border"
                 line_offset = int(line_offset - fontsize - line_spacing)
 
+    if config.long:
+        command += f" -resize \"{config.long}x{config.long}>\""
+
     command += f" \"{config.output}\""
     return command
 
@@ -91,6 +94,7 @@ parser.add_argument("-caption", help="A caption line", action='append', required
 parser.add_argument("-font", help="The name of the font to use (default: Arial))", required=False, default="Arial")
 parser.add_argument("-color", help="The color of the border (default: White)", required=False, default="White")
 parser.add_argument("-fontcolor", help="The color of the font (default: Black)", required=False, default="Black")
+parser.add_argument("-long", help="The maximum length of the long side (default: no maximum)", required=False)
 args = parser.parse_args()
 
 command = add_frame(args)
