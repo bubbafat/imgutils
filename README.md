@@ -1,5 +1,10 @@
 frame.py is a wrapper around ImageMagick to add borders and captions to image files. It supports fixed size, percentage, and golden ratio borders and allows customizing the colors of the border and font as well as the font face that is used. Caption sizing adjusts based on the border size. This is not meant to be a comprehensize tool - this is just wrapping the ImageMagick command line. The command line that is executed is printed so if you want to tweak something you can do that.
 
+Requires:
+
+ - python3
+ - Pillow (pip install Pillow)
+
 ```text
 usage: frame [-h] 
               -input INPUT  

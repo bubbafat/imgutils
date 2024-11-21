@@ -3,12 +3,19 @@ import os
 import math
 import argparse
 import subprocess
+import shutil
 from PIL import Image
 from PIL.ExifTags import TAGS
 from PIL import ExifTags
 
 
-magick='magick'
+magick=shutil.which('magick')
+if magick == None:
+    magick=shutil.which('convert')
+
+if magick == None:
+    print('ImageMagick 6+ must be installed (prefer 7 if possible)')
+    exit()
 
 def get_frame_size(image, method):
     if method == "golden":
